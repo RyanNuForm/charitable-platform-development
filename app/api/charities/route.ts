@@ -133,7 +133,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "fetch_failed" }, { status: 502 })
   }
 }
-
-function guessCause(fallback: CauseId): CauseId {
-  return fallback
-}

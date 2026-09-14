@@ -73,7 +73,7 @@ export function DonationModal({
           <Button
             className="flex-1 gap-2 rounded-xl font-semibold"
             onClick={() => {
-              window.open(charity.url, "_blank", "noopener,noreferrer")
+              window.open(charity.donateUrl, "_blank", "noopener,noreferrer")
               onClose()
             }}
           >
