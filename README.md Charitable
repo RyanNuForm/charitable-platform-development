@@ -1,0 +1,19 @@
+# Charitable 🌍
+A high-impact, serverless non-profit discovery application designed to connect global donors directly to over 1 million verified non-profits with complete financial transparency.
+
+## 🔗 Live Deployments
+- **Live Interactive Application:** [Launch Charitable Platform](https://charitable-platform-development.vercel.app/)
+- **Source Code Repository:** Hosted publicly on GitHub for open-source evaluation.
+
+## ⚡ Core Architecture & Engineering Highlights
+- **0% Intermediary Platform Fees:** Engineered a secure, transparent direct-to-cause routing pipeline that completely bypasses secondary payment handlers, ensuring 100% of financial inputs reach the verified non-profit organization.
+- **Asynchronous Live Data Pipeline:** Integrates the live public Every.org REST API infrastructure to execute dynamic, real-time client-side search requests across international databases.
+- **Modern Responsive Design:** Formatted with a fluid Tailwind CSS layout featuring rapid-response category quick-filters (`🌱 Environment`, `📚 Education`, `🏥 Healthcare`, `🍲 Hunger Relief`, `🐾 Animal Welfare`).
+- **Serverless Performance:** Built entirely on a decoupled Jamstack architecture utilizing standard React state tracking to optimize load speeds and guarantee zero downtime under heavy web traffic.
+
+## 🛠️ Tech Stack & Services Used
+- **Frontend Framework:** React (with dynamic state hooks and standard asynchronous fetch architecture)
+- **Styling Engine:** Tailwind CSS
+- **Data Source Provider:** Every.org Developer API (Public Endpoints)
+- **Deployment Platform:** Vercel Hosting (Production Optimization)
+
