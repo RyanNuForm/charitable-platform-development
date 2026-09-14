@@ -1,34 +1,58 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { SearchX } from "lucide-react"
+import { useEffect, useState } from "react"
+import useSWR from "swr"
+import { AlertCircle, Loader2, SearchX } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
 import { CharityCard } from "@/components/charity-card"
 import { DonationModal } from "@/components/donation-modal"
-import { CHARITIES, type CauseId, type Charity } from "@/lib/charities"
+import { type CauseId, type Charity } from "@/lib/charities"
+
+type ApiResponse = { charities?: Charity[]; error?: string }
+
+const fetcher = async (url: string): Promise<ApiResponse> => {
+  const res = await fetch(url)
+  const data = (await res.json()) as ApiResponse
+  if (!res.ok) {
+    const err = new Error(data.error || "request_failed") as Error & {
+      status?: number
+    }
+    err.status = res.status
+    throw err
+  }
+  return data
+}
 
 export default function Page() {
   const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [activeCause, setActiveCause] = useState<CauseId | null>(null)
   const [selected, setSelected] = useState<Charity | null>(null)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return CHARITIES.filter((c) => {
-      const matchesCause = !activeCause || c.cause === activeCause
-      const matchesQuery =
-        !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.summary.toLowerCase().includes(q) ||
-        c.cause.toLowerCase().includes(q)
-      return matchesCause && matchesQuery
-    })
-  }, [query, activeCause])
+  // Debounce the search box so we call the API only after typing settles.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 350)
+    return () => clearTimeout(t)
+  }, [query])
+
+  const params = new URLSearchParams()
+  if (debouncedQuery) params.set("q", debouncedQuery)
+  if (activeCause) params.set("cause", activeCause)
+  const key = `/api/charities${params.toString() ? `?${params.toString()}` : ""}`
+
+  const { data, error, isLoading } = useSWR<ApiResponse>(key, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const charities = data?.charities ?? []
+  const missingKey =
+    (error as (Error & { status?: number }) | undefined)?.status === 503
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar query={query} onQueryChange={setQuery} />
+      <Navbar query={query} onQueryChange={setQuery} loading={isLoading} />
       <main>
         <Hero
           activeCause={activeCause}
@@ -40,11 +64,20 @@ export default function Page() {
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
           <div className="mb-5 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Showing{" "}
-              <span className="font-semibold text-foreground">
-                {filtered.length}
-              </span>{" "}
-              {filtered.length === 1 ? "cause" : "causes"}
+              {isLoading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Searching live charities...
+                </span>
+              ) : (
+                <>
+                  Showing{" "}
+                  <span className="font-semibold text-foreground">
+                    {charities.length}
+                  </span>{" "}
+                  live {charities.length === 1 ? "cause" : "causes"}
+                </>
+              )}
             </p>
             {(activeCause || query) && (
               <button
@@ -60,9 +93,21 @@ export default function Page() {
             )}
           </div>
 
-          {filtered.length > 0 ? (
+          {missingKey ? (
+            <StateBlock
+              icon={<AlertCircle className="size-10 text-muted-foreground" />}
+              title="Every.org API key required"
+              body="Add EVERY_ORG_API_KEY to your project to load live nonprofit data."
+            />
+          ) : error ? (
+            <StateBlock
+              icon={<AlertCircle className="size-10 text-muted-foreground" />}
+              title="Could not reach Every.org"
+              body="The live charity service is temporarily unavailable. Please try again."
+            />
+          ) : charities.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((charity) => (
+              {charities.map((charity) => (
                 <CharityCard
                   key={charity.id}
                   charity={charity}
@@ -70,21 +115,44 @@ export default function Page() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-              <SearchX className="size-10 text-muted-foreground" />
-              <p className="mt-4 font-semibold text-foreground">
-                No causes found
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Try a different keyword or category.
-              </p>
+          ) : isLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-52 animate-pulse rounded-2xl border border-border bg-card"
+                />
+              ))}
             </div>
+          ) : (
+            <StateBlock
+              icon={<SearchX className="size-10 text-muted-foreground" />}
+              title="No causes found"
+              body="Try a different keyword or category."
+            />
           )}
         </section>
       </main>
 
       <DonationModal charity={selected} onClose={() => setSelected(null)} />
+    </div>
+  )
+}
+
+function StateBlock({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode
+  title: string
+  body: string
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
+      {icon}
+      <p className="mt-4 font-semibold text-foreground">{title}</p>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>
     </div>
   )
 }
