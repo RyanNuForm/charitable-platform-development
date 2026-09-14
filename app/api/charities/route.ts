@@ -62,7 +62,7 @@ function dedupe(charities: Charity[]): Charity[] {
 }
 
 export async function GET(request: Request) {
-  const apiKey = process.env.EVERY_ORG_API_KEY
+  const apiKey = process.env.API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: "missing_api_key" }, { status: 503 })
   }
