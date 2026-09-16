@@ -8,6 +8,7 @@ import { Hero } from "@/components/hero"
 import { CharityCard } from "@/components/charity-card"
 import { DonationModal } from "@/components/donation-modal"
 import { type CauseId, type Charity } from "@/lib/charities"
+import { type CurrencyCode } from "@/lib/currency"
 
 type ApiResponse = { charities?: Charity[]; error?: string }
 
@@ -29,6 +30,7 @@ export default function Page() {
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [activeCause, setActiveCause] = useState<CauseId | null>(null)
   const [selected, setSelected] = useState<Charity | null>(null)
+  const [currency, setCurrency] = useState<CurrencyCode>("USD")
 
   // Debounce the search box so we call the API only after typing settles.
   useEffect(() => {
@@ -52,7 +54,12 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar query={query} onQueryChange={setQuery} loading={isLoading} />
+      <Navbar
+        query={query}
+        onQueryChange={setQuery}
+        currency={currency}
+        onCurrencyChange={setCurrency}
+      />
       <main>
         <Hero
           activeCause={activeCause}
@@ -134,7 +141,11 @@ export default function Page() {
         </section>
       </main>
 
-      <DonationModal charity={selected} onClose={() => setSelected(null)} />
+      <DonationModal
+        charity={selected}
+        currency={currency}
+        onClose={() => setSelected(null)}
+      />
     </div>
   )
 }

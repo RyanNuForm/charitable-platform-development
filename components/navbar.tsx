@@ -1,13 +1,18 @@
 "use client"
 
-import { Heart, Search, User } from "lucide-react"
+import { ChevronDown, Heart, Search, User } from "lucide-react"
+import { CURRENCIES, type CurrencyCode } from "@/lib/currency"
 
 export function Navbar({
   query,
   onQueryChange,
+  currency,
+  onCurrencyChange,
 }: {
   query: string
   onQueryChange: (value: string) => void
+  currency: CurrencyCode
+  onCurrencyChange: (value: CurrencyCode) => void
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
@@ -31,6 +36,22 @@ export function Navbar({
             aria-label="Search charities"
             className="w-full rounded-full border border-input bg-secondary/60 py-2 pl-9 pr-4 text-sm text-foreground outline-none transition focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/30"
           />
+        </div>
+
+        <div className="relative shrink-0">
+          <select
+            value={currency}
+            onChange={(e) => onCurrencyChange(e.target.value as CurrencyCode)}
+            aria-label="Select currency"
+            className="cursor-pointer appearance-none rounded-full border border-input bg-secondary/60 py-2 pl-3.5 pr-8 text-sm font-medium text-foreground outline-none transition hover:bg-secondary focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/30"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.symbol} {c.code}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         </div>
 
         <button

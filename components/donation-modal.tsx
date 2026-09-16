@@ -4,12 +4,23 @@ import { useEffect } from "react"
 import { ExternalLink, ShieldCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Charity } from "@/lib/charities"
+import {
+  convertFromUsd,
+  formatAmount,
+  getCurrency,
+  type CurrencyCode,
+} from "@/lib/currency"
+
+// Suggested donation amounts, defined in USD and converted on display.
+const SUGGESTED_USD = [10, 25, 50, 100]
 
 export function DonationModal({
   charity,
+  currency,
   onClose,
 }: {
   charity: Charity | null
+  currency: CurrencyCode
   onClose: () => void
 }) {
   useEffect(() => {
@@ -68,6 +79,22 @@ export function DonationModal({
           for{" "}
           <span className="font-semibold text-foreground">{charity.name}</span>.
         </p>
+
+        <div className="mt-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Suggested amount ({getCurrency(currency).label})
+          </p>
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {SUGGESTED_USD.map((usd) => (
+              <div
+                key={usd}
+                className="rounded-xl border border-border bg-secondary/40 py-2 text-center text-sm font-semibold text-foreground"
+              >
+                {formatAmount(convertFromUsd(usd, currency), currency)}
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="mt-6 flex flex-col gap-2.5 sm:flex-row-reverse">
           <Button
